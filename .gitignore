@@ -1,0 +1,6 @@
+/data.kv
+*/data.kv
+config.json
+vendor/*
+boltkit
+log/*

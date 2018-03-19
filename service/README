@@ -1,0 +1,6 @@
+Each api endpoint should:
+1. Assert the incoming request has the required access level for the request.
+2. Assert all required parameters have been provided by the incoming request.
+3. Process all parameters into expected formats required by the processing func.
+4. Send the request payload to the processing func.
+5. Respond to the request with the returned value from the processing func.
