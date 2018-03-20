@@ -54,6 +54,10 @@ var (
 	// ErrResetUsed is returned when the provided password reset
 	// has already been used.
 	ErrResetUsed = errors.New("password reset has already been used")
+
+	// ErrNoUpdate is returned when an update call does not have updates
+	// to any of the update keys of an entity.
+	ErrNoUpdate = errors.New("supplied keys do not update entity")
 )
 
 // ErrKeyNotFound is returned when a query returns nothing for the key supplied.

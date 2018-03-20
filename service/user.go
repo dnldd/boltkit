@@ -320,22 +320,17 @@ func (service *Service) UpdateUserDetails(writer http.ResponseWriter, req *http.
 			return
 		}
 
-		firstName, ok := payload["firstName"].(string)
-		if !ok {
-			util.RespondWithError(writer, http.StatusBadRequest,
-				util.ErrKeyNotFound("firstName"))
-			return
-		}
-
-		lastName, ok := payload["lastName"].(string)
-		if !ok {
-			util.RespondWithError(writer, http.StatusBadRequest,
-				util.ErrKeyNotFound("lastName"))
-			return
-		}
+		firstName, _ := payload["firstName"].(string)
+		lastName, _ := payload["lastName"].(string)
 
 		newPassword, newPasswordOk := payload["newPassword"].(string)
 		currentPassword, currentPasswordOk := payload["currentPassword"].(string)
+
+		if firstName == "" && lastName == "" && newPassword == "" && currentPassword == "" {
+			util.RespondWithError(writer, http.StatusBadRequest,
+				util.ErrNoUpdate)
+			return
+		}
 
 		if (newPasswordOk && !currentPasswordOk) || (!newPasswordOk && currentPasswordOk) {
 			util.RespondWithError(writer, http.StatusBadRequest, util.ErrParameterGroup([]string{"newPassword ", "currentPassword"}))

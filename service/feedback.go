@@ -128,12 +128,7 @@ func (service *Service) UpdateFeedbackStatus(writer http.ResponseWriter, req *ht
 			return
 		}
 
-		resolved, ok := payload["resolved"].(bool)
-		if !ok {
-			util.RespondWithError(writer, http.StatusBadRequest, util.ErrKeyNotFound("resolved"))
-			return
-		}
-
+		resolved, _ := payload["resolved"].(bool)
 		feedback.Resolved = resolved
 		err = feedback.Update(App.Bolt, App.StorageMtx)
 		if err != nil {

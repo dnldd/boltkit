@@ -162,24 +162,12 @@ func (service *Service) UpdateInvite(writer http.ResponseWriter, req *http.Reque
 			return
 		}
 
-		role, ok := payload["role"].(string)
-		if !ok {
-			util.RespondWithError(writer, http.StatusBadRequest,
-				util.ErrKeyNotFound("role"))
-			return
-		}
+		role, _ := payload["role"].(string)
+		email, _ := payload["email"].(string)
+		status, _ := payload["email"].(string)
 
-		email, ok := payload["email"].(string)
-		if !ok {
-			util.RespondWithError(writer, http.StatusBadRequest,
-				util.ErrKeyNotFound("email"))
-			return
-		}
-
-		status, ok := payload["email"].(string)
-		if !ok {
-			util.RespondWithError(writer, http.StatusBadRequest,
-				util.ErrKeyNotFound("email"))
+		if role == "" && email == "" && status == "" {
+			util.RespondWithError(writer, http.StatusBadRequest, util.ErrNoUpdate)
 			return
 		}
 
