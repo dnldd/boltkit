@@ -34,7 +34,7 @@ func (service *Service) GetUser(writer http.ResponseWriter, req *http.Request) {
 	if granted {
 		params := mux.Vars(req)
 		id := params["id"]
-		user, err := entity.GetUser([]byte(id), App.Bolt)
+		user, err := entity.GetUser([]byte(id), service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -101,7 +101,7 @@ func (service *Service) CreateUser(writer http.ResponseWriter, req *http.Request
 		return
 	}
 
-	invite, err := entity.GetInvite([]byte(inviteRef), App.Bolt)
+	invite, err := entity.GetInvite([]byte(inviteRef), service.Bolt)
 	if err != nil {
 		util.RespondWithError(writer, http.StatusBadRequest, err)
 	}
@@ -139,7 +139,7 @@ func (service *Service) CreateUser(writer http.ResponseWriter, req *http.Request
 		Invite:       inviteRef,
 	}
 
-	err = user.Update(App.Bolt, App.StorageMtx)
+	err = user.Update(service.Bolt, service.StorageMtx)
 	if err != nil {
 		util.RespondWithError(writer, http.StatusBadRequest, err)
 		return
@@ -160,7 +160,7 @@ func (service *Service) ResetUserPassword(writer http.ResponseWriter, req *http.
 	if granted {
 		params := mux.Vars(req)
 		id := params["id"]
-		user, err := entity.GetUser([]byte(id), App.Bolt)
+		user, err := entity.GetUser([]byte(id), service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -221,7 +221,7 @@ func (service *Service) ResetUserPassword(writer http.ResponseWriter, req *http.
 		user.LastModified = now.Unix()
 		user.Password = hashedPassword
 
-		err = user.Update(App.Bolt, App.StorageMtx)
+		err = user.Update(service.Bolt, service.StorageMtx)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -243,7 +243,7 @@ func (service *Service) UpdateUserRole(writer http.ResponseWriter, req *http.Req
 	if granted {
 		params := mux.Vars(req)
 		id := params["id"]
-		user, err := entity.GetUser([]byte(id), App.Bolt)
+		user, err := entity.GetUser([]byte(id), service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -275,7 +275,7 @@ func (service *Service) UpdateUserRole(writer http.ResponseWriter, req *http.Req
 		now := time.Now()
 		user.LastModified = now.Unix()
 		user.Role = role
-		err = user.Update(App.Bolt, App.StorageMtx)
+		err = user.Update(service.Bolt, service.StorageMtx)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -297,7 +297,7 @@ func (service *Service) UpdateUserDetails(writer http.ResponseWriter, req *http.
 	if granted {
 		params := mux.Vars(req)
 		id := params["id"]
-		user, err := entity.GetUser([]byte(id), App.Bolt)
+		user, err := entity.GetUser([]byte(id), service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -368,7 +368,7 @@ func (service *Service) UpdateUserDetails(writer http.ResponseWriter, req *http.
 				return
 			}
 		}
-		err = user.Update(App.Bolt, App.StorageMtx)
+		err = user.Update(service.Bolt, service.StorageMtx)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -390,7 +390,7 @@ func (service *Service) DeleteUser(writer http.ResponseWriter, req *http.Request
 	if granted {
 		params := mux.Vars(req)
 		id := params["id"]
-		user, err := entity.GetUser([]byte(id), App.Bolt)
+		user, err := entity.GetUser([]byte(id), service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -419,7 +419,7 @@ func (service *Service) DeleteUser(writer http.ResponseWriter, req *http.Request
 			return
 		}
 
-		err = user.Delete(deleted, App.Bolt, App.StorageMtx)
+		err = user.Delete(deleted, service.Bolt, service.StorageMtx)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -468,7 +468,7 @@ func (service *Service) ListUsers(writer http.ResponseWriter, req *http.Request)
 			return
 		}
 
-		users, err := entity.ListUsers(App.Bolt, App.Cfg.PageLimit, term, uint32(offset))
+		users, err := entity.ListUsers(service.Bolt, service.Cfg.PageLimit, term, uint32(offset))
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -477,7 +477,7 @@ func (service *Service) ListUsers(writer http.ResponseWriter, req *http.Request)
 		meta := map[string]interface{}{}
 		meta["count"] = len(*users)
 		meta["offset"] = uint32(offset)
-		meta["pagesize"] = App.Cfg.PageLimit
+		meta["pagesize"] = service.Cfg.PageLimit
 		response := map[string]interface{}{}
 		response["meta"] = meta
 		response["results"] = users

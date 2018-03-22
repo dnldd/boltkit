@@ -63,7 +63,7 @@ func (service *Service) CreateSession(writer http.ResponseWriter, req *http.Requ
 
 	// Assert the requesting user exists and the supplied password matches.
 	emailB58 := base58.Encode([]byte(email))
-	user, err := entity.GetUser([]byte(emailB58), App.Bolt)
+	user, err := entity.GetUser([]byte(emailB58), service.Bolt)
 	if err != nil {
 		util.RespondWithError(writer, http.StatusBadRequest, err)
 		return

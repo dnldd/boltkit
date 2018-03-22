@@ -29,7 +29,7 @@ func (service *Service) GetFeedback(writer http.ResponseWriter, req *http.Reques
 	if granted {
 		params := mux.Vars(req)
 		id := params["id"]
-		feedback, err := entity.GetFeedback([]byte(id), App.Bolt)
+		feedback, err := entity.GetFeedback([]byte(id), service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -79,7 +79,7 @@ func (service *Service) CreateFeedback(writer http.ResponseWriter, req *http.Req
 		CreatedOn:    now.Unix(),
 	}
 
-	err = feedback.Update(App.Bolt, App.StorageMtx)
+	err = feedback.Update(service.Bolt, service.StorageMtx)
 	if err != nil {
 		util.RespondWithError(writer, http.StatusBadRequest, err)
 		return
@@ -105,7 +105,7 @@ func (service *Service) UpdateFeedbackStatus(writer http.ResponseWriter, req *ht
 	if granted {
 		params := mux.Vars(req)
 		id := params["id"]
-		feedback, err := entity.GetFeedback([]byte(id), App.Bolt)
+		feedback, err := entity.GetFeedback([]byte(id), service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -130,7 +130,7 @@ func (service *Service) UpdateFeedbackStatus(writer http.ResponseWriter, req *ht
 
 		resolved, _ := payload["resolved"].(bool)
 		feedback.Resolved = resolved
-		err = feedback.Update(App.Bolt, App.StorageMtx)
+		err = feedback.Update(service.Bolt, service.StorageMtx)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -178,7 +178,7 @@ func (service *Service) ListFeedback(writer http.ResponseWriter, req *http.Reque
 			return
 		}
 
-		feedback, err := entity.ListFeedback(App.Bolt, App.Cfg.PageLimit, term, uint32(offset))
+		feedback, err := entity.ListFeedback(service.Bolt, service.Cfg.PageLimit, term, uint32(offset))
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -187,7 +187,7 @@ func (service *Service) ListFeedback(writer http.ResponseWriter, req *http.Reque
 		meta := map[string]interface{}{}
 		meta["count"] = len(*feedback)
 		meta["offset"] = uint32(offset)
-		meta["pagesize"] = App.Cfg.PageLimit
+		meta["pagesize"] = service.Cfg.PageLimit
 		response := map[string]interface{}{}
 		response["meta"] = meta
 		response["results"] = feedback

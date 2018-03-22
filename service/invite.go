@@ -31,7 +31,7 @@ func (service *Service) GetInvite(writer http.ResponseWriter, req *http.Request)
 
 	if granted {
 		vars := mux.Vars(req)
-		invite, err := entity.GetInvite([]byte(vars["id"]), App.Bolt)
+		invite, err := entity.GetInvite([]byte(vars["id"]), service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -89,7 +89,7 @@ func (service *Service) CreateInvite(writer http.ResponseWriter, req *http.Reque
 			return
 		}
 
-		_, err = entity.GetUser([]byte(invitedBy), App.Bolt)
+		_, err = entity.GetUser([]byte(invitedBy), service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest,
 				util.ErrKeyNotFound("invitedBy"))
@@ -109,7 +109,7 @@ func (service *Service) CreateInvite(writer http.ResponseWriter, req *http.Reque
 			InvitedBy:    invitedBy,
 		}
 
-		err = invite.Update(App.Bolt, App.StorageMtx)
+		err = invite.Update(service.Bolt, service.StorageMtx)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -139,7 +139,7 @@ func (service *Service) UpdateInvite(writer http.ResponseWriter, req *http.Reque
 	if granted {
 		params := mux.Vars(req)
 		id := params["id"]
-		invite, err := entity.GetInvite([]byte(id), App.Bolt)
+		invite, err := entity.GetInvite([]byte(id), service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -193,7 +193,7 @@ func (service *Service) UpdateInvite(writer http.ResponseWriter, req *http.Reque
 		if status != "" {
 			invite.Status = status
 		}
-		err = invite.Update(App.Bolt, App.StorageMtx)
+		err = invite.Update(service.Bolt, service.StorageMtx)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -214,7 +214,7 @@ func (service *Service) DeleteInvite(writer http.ResponseWriter, req *http.Reque
 	if granted {
 		params := mux.Vars(req)
 		id := params["id"]
-		invite, err := entity.GetInvite([]byte(id), App.Bolt)
+		invite, err := entity.GetInvite([]byte(id), service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -243,7 +243,7 @@ func (service *Service) DeleteInvite(writer http.ResponseWriter, req *http.Reque
 			return
 		}
 
-		err = invite.Delete(deleted, App.Bolt, App.StorageMtx)
+		err = invite.Delete(deleted, service.Bolt, service.StorageMtx)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -292,7 +292,7 @@ func (service *Service) ListInvites(writer http.ResponseWriter, req *http.Reques
 			return
 		}
 
-		invites, err := entity.ListInvites(App.Bolt, App.Cfg.PageLimit, term, uint32(offset))
+		invites, err := entity.ListInvites(service.Bolt, service.Cfg.PageLimit, term, uint32(offset))
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -301,7 +301,7 @@ func (service *Service) ListInvites(writer http.ResponseWriter, req *http.Reques
 		meta := map[string]interface{}{}
 		meta["count"] = len(*invites)
 		meta["offset"] = uint32(offset)
-		meta["pagesize"] = App.Cfg.PageLimit
+		meta["pagesize"] = service.Cfg.PageLimit
 		response := map[string]interface{}{}
 		response["meta"] = meta
 		response["results"] = invites

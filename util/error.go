@@ -71,6 +71,12 @@ func ErrInvalidParameter(key string) error {
 	return fmt.Errorf("invalid parameter type for '%s'", key)
 }
 
+// ErrInvalidParameterOption is returned when a an unexpected parameter option
+// is encountered in a context making it invalid.
+func ErrInvalidParameterOption(key string, value interface{}, expectation interface{}) error {
+	return fmt.Errorf("invalid option for parameter type '%s' with value '%v', expected '%v'", key, value, expectation)
+}
+
 // ErrNotApplicable is returned when functionality is not applicable for an entity.
 func ErrNotApplicable(entity string) error {
 	return fmt.Errorf("functionality not applicable to entity '%s'", entity)
