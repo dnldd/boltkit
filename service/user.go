@@ -413,12 +413,7 @@ func (service *Service) DeleteUser(writer http.ResponseWriter, req *http.Request
 			return
 		}
 
-		deleted, ok := payload["deleted"].(bool)
-		if !ok {
-			util.RespondWithError(writer, http.StatusBadRequest, util.ErrKeyNotFound("deleted"))
-			return
-		}
-
+		deleted, _ := payload["deleted"].(bool)
 		err = user.Delete(deleted, service.Bolt, service.StorageMtx)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
