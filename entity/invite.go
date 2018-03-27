@@ -111,7 +111,7 @@ func ListInvites(db *bolt.DB, pageLimit uint32, term string, offset uint32) (*[]
 				}
 			}
 
-			if term == "" {
+			if term == "" && !currInvite.Deleted {
 				inviteList = append(inviteList, *currInvite)
 				// Stop iterating when data target has been met.
 				if uint32(len(inviteList)) == target {

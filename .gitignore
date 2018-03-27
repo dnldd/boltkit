@@ -4,3 +4,5 @@ config.json
 vendor/*
 boltkit
 log/*
+.DS_Store
+*/.DS_Store

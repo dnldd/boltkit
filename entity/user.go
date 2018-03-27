@@ -108,7 +108,7 @@ func ListUsers(db *bolt.DB, pageLimit uint32, term string, offset uint32) (*[]Us
 				}
 			}
 
-			if term == "" {
+			if term == "" && !currUser.Deleted && currUser.Role != util.Admin {
 				userList = append(userList, *currUser)
 				// Stop iterating when data target has been met.
 				if uint32(len(userList)) == target {
