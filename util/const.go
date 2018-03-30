@@ -8,6 +8,7 @@ var (
 	CacheBucket     = []byte("cache")
 	PassResetBucket = []byte("passreset")
 	FeedbackBucket  = []byte("feedback")
+	LogBucket       = []byte("log")
 )
 
 // Cache keys.

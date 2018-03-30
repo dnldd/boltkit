@@ -12,6 +12,7 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
 	mailgun "github.com/mailgun/mailgun-go"
+	"github.com/metakeule/fmtdate"
 	cmap "github.com/orcaman/concurrent-map"
 
 	"einheit/boltkit/base58"
@@ -173,14 +174,13 @@ func (service *Service) ValidateRequest(allowedRoles []string, req *http.Request
 	origin := req.RemoteAddr
 	route := req.URL.Path
 	requestType := req.Method
-
-	reqLog := map[string]interface{}{
-		"origin":    origin,
-		"requestor": token,
-		"type":      requestType,
-		"route":     route,
-		"query":     req.Form.Encode(),
-		"payload":   payload,
+	reqLog := entity.RequestLog{
+		Origin:      origin,
+		Requestor:   token,
+		RequestType: requestType,
+		Route:       route,
+		QueryParams: req.Form.Encode(),
+		Payload:     payload,
 	}
 
 	logBytes, err := json.Marshal(reqLog)
@@ -189,7 +189,24 @@ func (service *Service) ValidateRequest(allowedRoles []string, req *http.Request
 	}
 
 	// Log the request.
-	log.Info("received request: ", string(logBytes))
+	service.StorageMtx.Lock()
+	defer service.StorageMtx.Unlock()
+	err = service.Bolt.Update(func(tx *bolt.Tx) error {
+		dateStr := fmtdate.Format(util.DateFormat, time.Now())
+		logBucket := tx.Bucket(util.LogBucket)
+		dayBucket, err := logBucket.CreateBucketIfNotExists([]byte(dateStr))
+		if err != nil {
+			return err
+		}
+
+		tokenBucket, err := dayBucket.CreateBucketIfNotExists([]byte(token))
+		if err != nil {
+			return err
+		}
+
+		err = tokenBucket.Put(logBytes, nil)
+		return err
+	})
 
 	// Assert the calling user has the required access for the endpoint.
 	granted := false
@@ -308,7 +325,13 @@ func (service *Service) createBuckets() error {
 	// Create buckets if they are non-existent.
 	service.StorageMtx.Lock()
 	err := service.Bolt.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists(util.InviteBucket)
+		_, err := tx.CreateBucketIfNotExists(util.LogBucket)
+		if err != nil {
+			log.Errorf("failed to create bucket %s", string(util.LogBucket))
+			return err
+		}
+
+		_, err = tx.CreateBucketIfNotExists(util.InviteBucket)
 		if err != nil {
 			log.Errorf("failed to create bucket %s", string(util.InviteBucket))
 			return err
