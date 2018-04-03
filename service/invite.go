@@ -4,12 +4,14 @@ import (
 	"einheit/boltkit/entity"
 	"einheit/boltkit/util"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
 	"github.com/segmentio/ksuid"
 )
@@ -80,7 +82,7 @@ func (service *Service) CreateInvite(writer http.ResponseWriter, req *http.Reque
 			return
 		}
 
-		// Assert the accountin inviting the user is valid and has adequate
+		// Assert the account inviting the user is valid and has adequate
 		// privileges to create an invite.
 		invitedBy, ok := payload["invitedBy"].(string)
 		if !ok {
@@ -93,6 +95,34 @@ func (service *Service) CreateInvite(writer http.ResponseWriter, req *http.Reque
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest,
 				util.ErrKeyNotFound("invitedBy"))
+			return
+		}
+
+		currInvite := new(entity.Invite)
+		match := false
+		// Assert the email of the invited is not already in the system.
+		err = service.Bolt.View(func(tx *bolt.Tx) error {
+			bucket := tx.Bucket(util.InviteBucket)
+			cursor := bucket.Cursor()
+
+			for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
+				err := json.Unmarshal(v, currInvite)
+				if err != nil {
+					return util.ErrMalformedJSON
+				}
+
+				if currInvite.Email == email {
+					match = true
+					break
+				}
+			}
+
+			return nil
+		})
+
+		if match {
+			util.RespondWithError(writer, http.StatusBadRequest,
+				errors.New("invite already exists for provided email."))
 			return
 		}
 
