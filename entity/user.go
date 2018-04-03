@@ -98,21 +98,25 @@ func ListUsers(db *bolt.DB, pageLimit uint32, term string, offset uint32) (*[]Us
 				return util.ErrMalformedJSON
 			}
 
-			if (strings.Contains(strings.ToLower(currUser.Email), strings.ToLower(term)) ||
-				strings.Contains(strings.ToLower(currUser.Role), strings.ToLower(term))) && !currUser.Deleted {
-				currUser.Sanitize()
-				userList = append(userList, *currUser)
-				// Stop iterating when data target has been met.
-				if uint32(len(userList)) == target {
-					break
+			if term != "" {
+				if (strings.Contains(strings.ToLower(currUser.Email), strings.ToLower(term)) ||
+					strings.Contains(strings.ToLower(currUser.Role), strings.ToLower(term))) && !currUser.Deleted {
+					currUser.Sanitize()
+					userList = append(userList, *currUser)
+					// Stop iterating when data target has been met.
+					if uint32(len(userList)) == target {
+						break
+					}
 				}
 			}
 
-			if term == "" && !currUser.Deleted && currUser.Role != util.Admin {
-				userList = append(userList, *currUser)
-				// Stop iterating when data target has been met.
-				if uint32(len(userList)) == target {
-					break
+			if term == "" {
+				if !currUser.Deleted && currUser.Role != util.Admin {
+					userList = append(userList, *currUser)
+					// Stop iterating when data target has been met.
+					if uint32(len(userList)) == target {
+						break
+					}
 				}
 			}
 		}

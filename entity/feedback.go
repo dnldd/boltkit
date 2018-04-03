@@ -86,11 +86,13 @@ func ListFeedback(db *bolt.DB, pageLimit uint32, term string, offset uint32) (*[
 				return util.ErrMalformedJSON
 			}
 
-			if strings.Contains(strings.ToLower(currFeedback.User), strings.ToLower(term)) {
-				feedbackList = append(feedbackList, *currFeedback)
-				// Stop iterating when data target has been met.
-				if uint32(len(feedbackList)) == target {
-					break
+			if term != "" {
+				if strings.Contains(strings.ToLower(currFeedback.User), strings.ToLower(term)) {
+					feedbackList = append(feedbackList, *currFeedback)
+					// Stop iterating when data target has been met.
+					if uint32(len(feedbackList)) == target {
+						break
+					}
 				}
 			}
 
