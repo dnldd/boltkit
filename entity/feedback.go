@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"reflect"
 	"strings"
-	"sync"
 
 	"github.com/boltdb/bolt"
 )
@@ -41,8 +40,7 @@ func GetFeedback(id []byte, db *bolt.DB) (*Feedback, error) {
 }
 
 // Update stores the most updated state of the feedback entity.
-func (feedback *Feedback) Update(db *bolt.DB, mtx *sync.Mutex) error {
-	mtx.Lock()
+func (feedback *Feedback) Update(db *bolt.DB) error {
 	err := db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(util.FeedbackBucket)
 		feedbackBytes, err := json.Marshal(feedback)
@@ -54,12 +52,11 @@ func (feedback *Feedback) Update(db *bolt.DB, mtx *sync.Mutex) error {
 		err = bucket.Put([]byte(feedback.Uuid), feedbackBytes)
 		return err
 	})
-	mtx.Unlock()
 	return err
 }
 
 // Delete not applicable for feedback.
-func (feedback *Feedback) Delete(state bool, db *bolt.DB, mtx *sync.Mutex) error {
+func (feedback *Feedback) Delete(state bool, db *bolt.DB) error {
 	return util.ErrNotApplicable(reflect.TypeOf(feedback).Name())
 }
 

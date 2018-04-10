@@ -76,7 +76,7 @@ func (service *Service) CreateReset(writer http.ResponseWriter, req *http.Reques
 		Expiry:    util.GetFutureTime(time.Now(), 0, 5, 0, 0).Unix(),
 	}
 
-	err = reset.Update(service.Bolt, service.StorageMtx)
+	err = reset.Update(service.Bolt)
 	if err != nil {
 		util.RespondWithError(writer, http.StatusBadRequest, err)
 		return
@@ -111,7 +111,7 @@ func (service *Service) UpdateResetState(writer http.ResponseWriter, req *http.R
 		}
 
 		reset.Used = true
-		err = reset.Update(service.Bolt, service.StorageMtx)
+		err = reset.Update(service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return

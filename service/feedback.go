@@ -79,7 +79,7 @@ func (service *Service) CreateFeedback(writer http.ResponseWriter, req *http.Req
 		CreatedOn:    now.Unix(),
 	}
 
-	err = feedback.Update(service.Bolt, service.StorageMtx)
+	err = feedback.Update(service.Bolt)
 	if err != nil {
 		util.RespondWithError(writer, http.StatusBadRequest, err)
 		return
@@ -130,7 +130,7 @@ func (service *Service) UpdateFeedbackStatus(writer http.ResponseWriter, req *ht
 
 		resolved, _ := payload["resolved"].(bool)
 		feedback.Resolved = resolved
-		err = feedback.Update(service.Bolt, service.StorageMtx)
+		err = feedback.Update(service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return

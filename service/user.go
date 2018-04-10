@@ -139,7 +139,7 @@ func (service *Service) CreateUser(writer http.ResponseWriter, req *http.Request
 		Invite:       inviteRef,
 	}
 
-	err = user.Update(service.Bolt, service.StorageMtx)
+	err = user.Update(service.Bolt)
 	if err != nil {
 		util.RespondWithError(writer, http.StatusBadRequest, err)
 		return
@@ -221,7 +221,7 @@ func (service *Service) ResetUserPassword(writer http.ResponseWriter, req *http.
 		user.LastModified = now.Unix()
 		user.Password = hashedPassword
 
-		err = user.Update(service.Bolt, service.StorageMtx)
+		err = user.Update(service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -275,7 +275,7 @@ func (service *Service) UpdateUserRole(writer http.ResponseWriter, req *http.Req
 		now := time.Now()
 		user.LastModified = now.Unix()
 		user.Role = role
-		err = user.Update(service.Bolt, service.StorageMtx)
+		err = user.Update(service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -368,7 +368,7 @@ func (service *Service) UpdateUserDetails(writer http.ResponseWriter, req *http.
 				return
 			}
 		}
-		err = user.Update(service.Bolt, service.StorageMtx)
+		err = user.Update(service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -414,7 +414,7 @@ func (service *Service) DeleteUser(writer http.ResponseWriter, req *http.Request
 		}
 
 		deleted, _ := payload["deleted"].(bool)
-		err = user.Delete(deleted, service.Bolt, service.StorageMtx)
+		err = user.Delete(deleted, service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return

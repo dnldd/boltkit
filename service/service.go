@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -34,7 +33,6 @@ type Service struct {
 	SessionMap cmap.ConcurrentMap
 	MailGun    mailgun.Mailgun
 	HTTPClient *http.Client
-	StorageMtx *sync.Mutex
 	Router     *mux.Router
 	S3         *util.S3Connection
 }
@@ -52,7 +50,6 @@ func NewService(configPath string) (*Service, error) {
 	}
 
 	// Connect to the kv storage.
-	service.StorageMtx = new(sync.Mutex)
 	service.Bolt, err = bolt.Open(service.Cfg.Storage, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		return nil, err
@@ -189,8 +186,6 @@ func (service *Service) ValidateRequest(allowedRoles []string, req *http.Request
 	}
 
 	// Log the request.
-	service.StorageMtx.Lock()
-	defer service.StorageMtx.Unlock()
 	err = service.Bolt.Update(func(tx *bolt.Tx) error {
 		dateStr := fmtdate.Format(util.DateFormat, time.Now())
 		logBucket := tx.Bucket(util.LogBucket)
@@ -249,7 +244,6 @@ func (service *Service) ClearSessions() error {
 	})
 
 	// Iterate through all session kv entries and delete them.
-	service.StorageMtx.Lock()
 	err = service.Bolt.Update(func(b *bolt.Tx) error {
 		bucket := b.Bucket(util.SessionBucket)
 		for idx := 0; idx < len(*tokens); idx++ {
@@ -260,7 +254,6 @@ func (service *Service) ClearSessions() error {
 		}
 		return nil
 	})
-	service.StorageMtx.Unlock()
 	// NB: We are using this approach to get around a bolt bug preventing
 	// deletes while iterating with a cursor.
 	// See: https://github.com/boltdb/bolt/issues/620
@@ -270,7 +263,6 @@ func (service *Service) ClearSessions() error {
 // SaveSessions persists all unexpired sessions.
 func (service *Service) SaveSessions() error {
 	// Save all unexpired sessions in the in-memory session store.
-	service.StorageMtx.Lock()
 	err := service.Bolt.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(util.SessionBucket)
 		keys := service.SessionMap.Keys()
@@ -293,7 +285,6 @@ func (service *Service) SaveSessions() error {
 		}
 		return nil
 	})
-	service.StorageMtx.Unlock()
 	return err
 }
 
@@ -323,7 +314,6 @@ func (service *Service) LoadSessions() error {
 
 func (service *Service) createBuckets() error {
 	// Create buckets if they are non-existent.
-	service.StorageMtx.Lock()
 	err := service.Bolt.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists(util.LogBucket)
 		if err != nil {
@@ -369,7 +359,6 @@ func (service *Service) createBuckets() error {
 
 		return err
 	})
-	service.StorageMtx.Unlock()
 	return err
 }
 
@@ -414,7 +403,7 @@ func (service *Service) createAdmin(payload map[string]interface{}) (*entity.Use
 		Invite:       "-",
 	}
 
-	err = user.Update(service.Bolt, service.StorageMtx)
+	err = user.Update(service.Bolt)
 	if err != nil {
 		log.Error(err)
 		return nil, err
@@ -438,13 +427,11 @@ func (service *Service) createRoutes() {
 
 // CachePut stores an entity in the server cache.
 func (service *Service) CachePut(id []byte, value []byte) error {
-	service.StorageMtx.Lock()
 	err := service.Bolt.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(util.CacheBucket)
 		err := bucket.Put(id, value)
 		return err
 	})
-	service.StorageMtx.Unlock()
 	return err
 }
 
@@ -465,12 +452,10 @@ func (service *Service) CacheGet(id []byte) ([]byte, error) {
 
 // Delete removes the specified key and its associated value from storage.
 func (service *Service) Delete(bucket, key []byte) error {
-	service.StorageMtx.Lock()
 	err := service.Bolt.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket(bucket)
 		return b.Delete(key)
 	})
-	service.StorageMtx.Unlock()
 	return err
 }
 

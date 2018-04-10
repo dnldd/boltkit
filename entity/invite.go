@@ -3,7 +3,6 @@ package entity
 import (
 	"encoding/json"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -51,8 +50,7 @@ func GetInvite(id []byte, db *bolt.DB) (*Invite, error) {
 }
 
 // Update stores the most updated state of the user entity.
-func (invite *Invite) Update(db *bolt.DB, mtx *sync.Mutex) error {
-	mtx.Lock()
+func (invite *Invite) Update(db *bolt.DB) error {
 	err := db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(util.InviteBucket)
 		inviteBytes, err := json.Marshal(invite)
@@ -63,17 +61,16 @@ func (invite *Invite) Update(db *bolt.DB, mtx *sync.Mutex) error {
 		err = bucket.Put([]byte(invite.Uuid), inviteBytes)
 		return err
 	})
-	mtx.Unlock()
 	return err
 }
 
 // Delete toggles the invites entity's delete status. This determines whether
 // the entity is queryable by the service, the entity will exist in storage
 // regardless of state.
-func (invite *Invite) Delete(state bool, db *bolt.DB, mtx *sync.Mutex) error {
+func (invite *Invite) Delete(state bool, db *bolt.DB) error {
 	invite.Deleted = state
 	invite.LastModified = time.Now().Unix()
-	return invite.Update(db, mtx)
+	return invite.Update(db)
 }
 
 // ListInvites returns a set of invites that match the query criteria.

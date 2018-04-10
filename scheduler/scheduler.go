@@ -89,7 +89,6 @@ func ExpiredInvites(app *service.Service) {
 	}
 
 	if len(expiredInvites) > 0 {
-		app.StorageMtx.Lock()
 		err = app.Bolt.Update(func(tx *bolt.Tx) error {
 			bucket := tx.Bucket(util.InviteBucket)
 			for _, invite := range expiredInvites {
@@ -101,7 +100,6 @@ func ExpiredInvites(app *service.Service) {
 
 			return nil
 		})
-		app.StorageMtx.Unlock()
 		if err != nil {
 			log.Error("expired invites job failed: ", err)
 		}
@@ -136,7 +134,6 @@ func ExpiredPassReset(app *service.Service) {
 	}
 
 	if len(expiredResets) > 0 {
-		app.StorageMtx.Lock()
 		err = app.Bolt.Update(func(tx *bolt.Tx) error {
 			bucket := tx.Bucket(util.PassResetBucket)
 			for _, reset := range expiredResets {
@@ -148,7 +145,6 @@ func ExpiredPassReset(app *service.Service) {
 
 			return nil
 		})
-		app.StorageMtx.Unlock()
 		if err != nil {
 			log.Error("expired password resets job failed: ", err)
 		}

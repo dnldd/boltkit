@@ -139,7 +139,7 @@ func (service *Service) CreateInvite(writer http.ResponseWriter, req *http.Reque
 			InvitedBy:    invitedBy,
 		}
 
-		err = invite.Update(service.Bolt, service.StorageMtx)
+		err = invite.Update(service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -223,7 +223,7 @@ func (service *Service) UpdateInvite(writer http.ResponseWriter, req *http.Reque
 		if status != "" {
 			invite.Status = status
 		}
-		err = invite.Update(service.Bolt, service.StorageMtx)
+		err = invite.Update(service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return
@@ -273,7 +273,7 @@ func (service *Service) DeleteInvite(writer http.ResponseWriter, req *http.Reque
 			return
 		}
 
-		err = invite.Delete(deleted, service.Bolt, service.StorageMtx)
+		err = invite.Delete(deleted, service.Bolt)
 		if err != nil {
 			util.RespondWithError(writer, http.StatusBadRequest, err)
 			return

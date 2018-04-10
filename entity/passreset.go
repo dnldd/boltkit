@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"reflect"
 	"strings"
-	"sync"
 
 	"einheit/boltkit/util"
 
@@ -44,8 +43,7 @@ func GetPassReset(id []byte, db *bolt.DB) (*PassReset, error) {
 }
 
 // Update stores the most updated state of the password reset entity.
-func (reset *PassReset) Update(db *bolt.DB, mtx *sync.Mutex) error {
-	mtx.Lock()
+func (reset *PassReset) Update(db *bolt.DB) error {
 	err := db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(util.PassResetBucket)
 		resetBytes, err := json.Marshal(reset)
@@ -57,12 +55,11 @@ func (reset *PassReset) Update(db *bolt.DB, mtx *sync.Mutex) error {
 		err = bucket.Put([]byte(reset.Uuid), resetBytes)
 		return err
 	})
-	mtx.Unlock()
 	return err
 }
 
 // Delete not applicable for password resets.
-func (reset *PassReset) Delete(state bool, db *bolt.DB, mtx *sync.Mutex) error {
+func (reset *PassReset) Delete(state bool, db *bolt.DB) error {
 	return util.ErrNotApplicable(reflect.TypeOf(reset).Name())
 }
 

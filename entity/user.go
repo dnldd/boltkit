@@ -3,7 +3,6 @@ package entity
 import (
 	"encoding/json"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -43,8 +42,7 @@ func GetUser(id []byte, db *bolt.DB) (*User, error) {
 }
 
 // Update stores the most updated state of the user entity.
-func (user *User) Update(db *bolt.DB, mtx *sync.Mutex) error {
-	mtx.Lock()
+func (user *User) Update(db *bolt.DB) error {
 	err := db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(util.UserBucket)
 		userBytes, err := json.Marshal(user)
@@ -56,17 +54,16 @@ func (user *User) Update(db *bolt.DB, mtx *sync.Mutex) error {
 		err = bucket.Put([]byte(user.Uuid), userBytes)
 		return err
 	})
-	mtx.Unlock()
 	return err
 }
 
 // Delete toggles the user entity's delete status. This determines whether
 // the entity is queryable by the service, the entity will exist in storage
 // regardless of state.
-func (user *User) Delete(state bool, db *bolt.DB, mtx *sync.Mutex) error {
+func (user *User) Delete(state bool, db *bolt.DB) error {
 	user.Deleted = state
 	user.LastModified = time.Now().Unix()
-	return user.Update(db, mtx)
+	return user.Update(db)
 }
 
 // Sanitize prepares the user entity to be sent a request response.

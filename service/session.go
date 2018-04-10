@@ -86,7 +86,7 @@ func (service *Service) CreateSession(writer http.ResponseWriter, req *http.Requ
 	}
 	user.LastLogin = now.Unix()
 	session.Update(App.SessionMap)
-	user.Update(service.Bolt, service.StorageMtx)
+	user.Update(service.Bolt)
 	util.RespondWithJSON(writer, http.StatusCreated, session)
 	return
 }
