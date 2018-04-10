@@ -10,7 +10,7 @@ type Config struct {
 	HTTPS               bool   `json:"https"`
 	Storage             string `json:"storage"`
 	AdminEmail          string `json:"adminemail"`
-	AdminPass           string `json:"adminepass"`
+	AdminPass           string `json:"adminpass"`
 	ResetEmail          string `json:"resetemail"`
 	InviteEmail         string `json:"inviteemail"`
 	FeedbackEmail       string `json:"feedbackemail"`
